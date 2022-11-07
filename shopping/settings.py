@@ -208,11 +208,11 @@ STATIC_URL = '/static/'
 #     }
 # }
 
-REST_FRAMEWORK = {
-    'DEFAULT_AUTHENTICATION_CLASSES': (
-        'apps.utils.auth.JWTAuthentication',
-    )
-}
+# REST_FRAMEWORK = {
+#     'DEFAULT_AUTHENTICATION_CLASSES': (
+#         'apps.utils.auth.JWTAuthentication',
+#     )
+# }
 
 # APPEND_SLASH=False
 

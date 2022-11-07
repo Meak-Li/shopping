@@ -17,7 +17,7 @@ class UserAdmin(admin.ModelAdmin):
 
 @admin.register(ShoppingCartModel)
 class ShoppingCartAdmin(admin.ModelAdmin):
-    list_display = ["user", "good", "number", "price_all"]
+    list_display = ["number", "price_all"]
     search_fields = ["user"]
     list_filter = ["user"]
 
@@ -31,5 +31,5 @@ class GoodsAdmin(admin.ModelAdmin):
 
 @admin.register(OrderModel)
 class OrderAdmin(admin.ModelAdmin):
-    list_display = ["address", "email", "phone", "sender", "address_person"]
-    search_fields = ["phone"]
+    list_display = ["user", "user_phone", "good", "address", "price"]
+    search_fields = ["user"]

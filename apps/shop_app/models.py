@@ -43,19 +43,18 @@ class ShoppingCartModel(models.Model):
     user = models.ForeignKey(UsersModel, related_name="user_cart", on_delete=models.CASCADE)
     good = models.ForeignKey(GoodsModel, related_name="good_cart", on_delete=models.CASCADE)
 
-
     class Meta:
         db_table = 'shopping_cart'
         verbose_name = 'shopping_cart'
 
 
-
 class OrderModel(models.Model):
     address = models.CharField(max_length=200)
-    email = models.CharField(max_length=200)
-    phone = models.CharField(max_length=200)
-    sender = models.CharField(max_length=200)
-    address_person = models.CharField(max_length=200)
+    user_phone = models.CharField(max_length=200)
+    user = models.ForeignKey(UsersModel, related_name="user_order", on_delete=models.CASCADE)
+    good = models.ForeignKey(GoodsModel, related_name="good_order", on_delete=models.CASCADE)
+    number = models.IntegerField()
+    price = models.IntegerField()
 
     class Meta:
         db_table = 'orders'
