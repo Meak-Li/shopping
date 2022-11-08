@@ -13,6 +13,8 @@ from apps.shop_app.serializers import CreateUserSerializer, UserModelSerializer,
 # 加密解密
 from django.contrib.auth.hashers import make_password, check_password
 
+import requests
+
 
 class UsersView(APIView):
     """用户操作"""
@@ -79,6 +81,25 @@ class UsersView(APIView):
             email=user_data["email"],
             gender=user_data["gender"],
         )
+
+        store_hash = 'hchlmxrf0p'
+        url = f'https://api.bigcommerce.com/stores/{store_hash}/v3/customers'
+
+        headers = {
+            'Content-Type': "application/json",
+            "X-Auth-Token": "dtfqm7e076muz8q7qrvcspn9h8parkb"
+        }
+
+        resp = requests.get(url, headers=headers)
+        print(resp)
+
+        new_user = requests.post(url, headers=headers, data=json.dumps(
+            [{
+                "email": user_data["email"],
+                "first_name": "Jee",
+                "last_name": user_data["name"]
+            }]))
+        print(new_user)
 
         if user.gender == 1:
             gender_out = "male"
