@@ -37,15 +37,6 @@ class GoodModelSerializer(serializers.ModelSerializer):
 class CreateCartSerializere(serializers.Serializer):
     number = serializers.IntegerField()
     price_all = serializers.IntegerField()
-    # user_id = serializers.IntegerField()
-    # good_id = serializers.IntegerField()
-    # allow_null = True
-
-    # def validate(self, attrs):
-    #     name_nick = attrs.get("name_nick")
-    #     if UsersModel.objects.filter(name_nick=name_nick).exists():
-    #         raise serializers.ValidationError("User already exists")
-    #     return attrs
 
 
 class OrderModelSerializer(serializers.ModelSerializer):
@@ -57,8 +48,8 @@ class OrderModelSerializer(serializers.ModelSerializer):
 class CreateOrderSerializere(serializers.Serializer):
     address = serializers.CharField()
     user_phone = serializers.CharField()
-    number = serializers.IntegerField()
-    price = serializers.IntegerField()
-    good_name = serializers.CharField()
+    # number = serializers.IntegerField()
+    # price = serializers.IntegerField()
+    # good_name = serializers.CharField()
     name_nick = serializers.CharField()
 

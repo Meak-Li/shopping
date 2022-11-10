@@ -1,11 +1,13 @@
 import json
 import time
+
+from django.contrib.auth.decorators import login_required
 from django.http import JsonResponse
 
 from apps.shop_app.models import UsersModel, ShoppingCartModel, GoodsModel, OrderModel
 from django.shortcuts import render
 from rest_framework.response import Response
-# Create your views here.
+
 from rest_framework.views import APIView
 
 from apps.shop_app.serializers import CreateUserSerializer, UserModelSerializer, CreateGoodSerializer, \
@@ -232,9 +234,9 @@ class GoodsView(APIView):
             "code": 200,
             "message": "Success",
             "data": {
-                "user": good.id,
-                "name_nick": good.price,
-                "email": good.origin_place,
+                "good_id": good.id,
+                "good_price": good.price,
+                "good_origin_place": good.origin_place,
             }
         })
 
@@ -280,7 +282,7 @@ class ShoppingCartView(APIView):
                 "code": 200,
                 "message": "Success",
                 "data": {
-                    "cart": ShoppingCartModel.objects.filter(userid=user_obj.id).first().id,
+                    "cart_id": ShoppingCartModel.objects.filter(userid=user_obj.id).first().id,
                     "user_id": user_obj.id,
                     "user_nick": user_obj.name_nick,
                     "good_id": good_obj.id,
@@ -401,93 +403,181 @@ class OrdersView(APIView):
         # 下单，直接下单，与购物车链接
         data = json.loads(request.body)
 
-        serializers = CreateOrderSerializere(data={
-            "address": data.get("address"),
-            "user_phone": data.get("user_phone"),
-            "number": data.get("number"),
-            "price": data.get("price"),
-            "good_name": data.get("good_name"),
-            "name_nick": data.get("name_nick")
-        })
-        if not serializers.is_valid():
-            return Response(serializers.errors)
-
-        name_nick_query = data.get("name_nick")
-        good_name_query = data.get("good_name")
-
-        user_obj = UsersModel.objects.filter(name_nick=name_nick_query).first()
-        good_obj = GoodsModel.objects.filter(name=good_name_query).first()
-        cart_order_obj = ShoppingCartModel.objects.filter(userid=user_obj.id, goodid=good_obj.id).first()
-        # 如果购物车里面有物品时
-        if cart_order_obj:
-            order = OrderModel.objects.create(
-                address=data["address"],
-                user_phone=data["user_phone"],
-                number=cart_order_obj.number,
-                price=cart_order_obj.price_all,
-                user=user_obj,
-                good=good_obj,
-                cart=cart_order_obj
-            )
-
-            return Response({
-                "code": 200,
-                "message": "Success",
-                "data": {
-                    "name_nick": order.user.name_nick,
-                    "good_name": order.good.name,
-                    "address": order.address,
-                    "phone": order.user_phone,
-                    "number": order.number,
-                    "price": order.price
-                }
-            })
-        # 如果购物车里面没有物品时
-        else:
-            # 添加购物车 购物车表里没有一个user买一种商品有很多条数据的情况 if ShoppingCartModel.objects.filter(userid=user_obj.id).exists() and
-            # ShoppingCartModel.objects.filter(goodid=good_obj.id).exists(): number_query =
-            # ShoppingCartModel.objects.filter(userid=user_obj.id,goodid=good_obj.id).first().number + data.get(
-            # "number") price_all_query = number_query * good_obj.price ShoppingCartModel.objects.filter(
-            # userid=user_obj.id, goodid=good_obj.id).update(number=number_query, price_all=price_all_query)  # 计算价格
-            price_all = good_obj.price * data.get("number")
-            serializers = CreateCartSerializere(data={
+        goods_name_list = data.get("good_name").split(",")
+        number_list = data.get("number").split(",")
+        # print(str)
+        # goods_name_list = str.split(",")
+        # print(goods_name_list)
+        # print(len(goods_name_list))
+        # return Response({"success"})
+        if len(goods_name_list) == 1:
+            serializers = CreateOrderSerializere(data={
+                "address": data.get("address"),
+                "user_phone": data.get("user_phone"),
                 "number": data.get("number"),
-                "price_all": price_all,
-                # "good_id": cart_data.get("good_id"),
-                # "user_id": cart_data.get("user_id"),
+                # "price": data.get("price"),
+                "good_name": data.get("good_name"),
+                "name_nick": data.get("name_nick")
             })
             if not serializers.is_valid():
                 return Response(serializers.errors)
-            # 注意这里user与good需要传入一个实例化对象
-            cart = ShoppingCartModel.objects.create(
-                number=data["number"],
-                price_all=price_all,
-                user=user_obj,
-                good=good_obj,
-                userid=user_obj.id,
-                goodid=good_obj.id
-            )
 
-            cart_order_obj = ShoppingCartModel.objects.filter(id=cart.id).first()
-            order = OrderModel.objects.create(
-                address=data["address"],
-                user_phone=data["user_phone"],
-                number=cart_order_obj.number,
-                price=cart_order_obj.price_all,
-                user=user_obj,
-                good=good_obj,
-                cart=cart_order_obj
-            )
+            name_nick_query = data.get("name_nick")
+            good_name_query = data.get("good_name")
+
+            user_obj = UsersModel.objects.filter(name_nick=name_nick_query).first()
+            good_obj = GoodsModel.objects.filter(name=good_name_query).first()
+            cart_order_obj = ShoppingCartModel.objects.filter(userid=user_obj.id, goodid=good_obj.id).first()
+            # 如果购物车里面有物品时
+            if cart_order_obj:
+                order = OrderModel.objects.create(
+                    address=data["address"],
+                    user_phone=data["user_phone"],
+                    number=cart_order_obj.number,
+                    price=cart_order_obj.price_all,
+                    user=user_obj,
+                    good=good_obj,
+                    cart=cart_order_obj
+                )
+
+                return Response({
+                    "code": 200,
+                    "message": "Success",
+                    "data": {
+                        "name_nick": order.user.name_nick,
+                        "good_name": order.good.name,
+                        "address": order.address,
+                        "phone": order.user_phone,
+                        "number": order.number,
+                        "price": order.price
+                    }
+                })
+            # 如果购物车里面没有物品时
+            else:
+                # 添加购物车 购物车表里没有一个user买一种商品有很多条数据的情况 if ShoppingCartModel.objects.filter(userid=user_obj.id).exists() and
+                # ShoppingCartModel.objects.filter(goodid=good_obj.id).exists(): number_query =
+                # ShoppingCartModel.objects.filter(userid=user_obj.id,goodid=good_obj.id).first().number + data.get(
+                # "number") price_all_query = number_query * good_obj.price ShoppingCartModel.objects.filter(
+                # userid=user_obj.id, goodid=good_obj.id).update(number=number_query, price_all=price_all_query)  # 计算价格
+                price_all = good_obj.price * data.get("number")
+                serializers = CreateCartSerializere(data={
+                    "number": data.get("number"),
+                    "price_all": price_all,
+                    # "good_id": cart_data.get("good_id"),
+                    # "user_id": cart_data.get("user_id"),
+                })
+                if not serializers.is_valid():
+                    return Response(serializers.errors)
+                # 注意这里user与good需要传入一个实例化对象
+                # cart = ShoppingCartModel.objects.create(
+                #     number=data["number"],
+                #     price_all=price_all,
+                #     user=user_obj,
+                #     good=good_obj,
+                #     userid=user_obj.id,
+                #     goodid=good_obj.id
+                # )
+
+                # cart_order_obj = ShoppingCartModel.objects.filter(id=cart.id).first()
+                order = OrderModel.objects.create(
+                    address=data["address"],
+                    user_phone=data["user_phone"],
+                    # number=cart_order_obj.number,
+                    number=data["number"],
+                    # price=cart_order_obj.price_all,
+                    price=price_all,
+                    user=user_obj,
+                    good=good_obj,
+                    # cart=cart_order_obj
+                )
+
+                return Response({
+                    "code": 200,
+                    "message": "Success",
+                    "data": {
+                        "name_nick": order.user.name_nick,
+                        "good_name": order.good.name,
+                        "address": order.address,
+                        "phone": order.user_phone,
+                        "number": order.number,
+                        "price": order.price
+                    }
+                })
+        # 如果len>1
+        else:
+            serializers = CreateOrderSerializere(data={
+                "address": data.get("address"),
+                "user_phone": data.get("user_phone"),
+                # "number": data.get("number"),
+                "price": data.get("price"),
+                # "good_name": data.get("good_name"),
+                "name_nick": data.get("name_nick")
+            })
+            if not serializers.is_valid():
+                return Response(serializers.errors)
+
+            name_nick_query = data.get("name_nick")
+
+            for good_name_query, number in zip(goods_name_list, number_list):
+                # good_name_query = data.get("good_name")
+
+                user_obj = UsersModel.objects.filter(name_nick=name_nick_query).first()
+                good_obj = GoodsModel.objects.filter(name=good_name_query).first()
+                cart_order_obj = ShoppingCartModel.objects.filter(userid=user_obj.id, goodid=good_obj.id).first()
+                # 如果购物车里面有物品时
+                if cart_order_obj:
+                    order = OrderModel.objects.create(
+                        address=data["address"],
+                        user_phone=data["user_phone"],
+                        number=number,
+                        price=cart_order_obj.price_all,
+                        user=user_obj,
+                        good=good_obj,
+                        cart=cart_order_obj
+                    )
+
+                    # return Response({
+                    #     "code": 200,
+                    #     "message": "Success",
+                    #     "data": {
+                    #         "name_nick": order.user.name_nick,
+                    #         "good_name": order.good.name,
+                    #         "address": order.address,
+                    #         "phone": order.user_phone,
+                    #         "number": order.number,
+                    #         "price": order.price
+                    #     }
+                    # })
+                # 如果购物车里面没有物品
+                else:
+                    # price_all = good_obj.price * data.get("number")
+                    price_all = good_obj.price * int(number)
+                    serializers = CreateCartSerializere(data={
+                        "number": int(number),
+                        "price_all": price_all,
+                    })
+                    if not serializers.is_valid():
+                        return Response(serializers.errors)
+
+                    order = OrderModel.objects.create(
+                        address=data["address"],
+                        user_phone=data["user_phone"],
+                        number=int(number),
+                        price=price_all,
+                        user=user_obj,
+                        good=good_obj,
+                    )
 
             return Response({
                 "code": 200,
                 "message": "Success",
                 "data": {
                     "name_nick": order.user.name_nick,
-                    "good_name": order.good.name,
+                    # "good_name": order.good.name,
+                    "good_name": goods_name_list,
                     "address": order.address,
                     "phone": order.user_phone,
-                    "number": order.number,
+                    "number": number_list,
                     "price": order.price
                 }
             })

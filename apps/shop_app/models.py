@@ -56,7 +56,7 @@ class OrderModel(models.Model):
     user_phone = models.CharField(max_length=200)
     user = models.ForeignKey(UsersModel, related_name="user_order", on_delete=models.CASCADE)
     good = models.ForeignKey(GoodsModel, related_name="good_order", on_delete=models.CASCADE)
-    cart = models.ForeignKey(ShoppingCartModel, related_name="cart_order", on_delete=models.CASCADE)
+    cart = models.ForeignKey(ShoppingCartModel, related_name="cart_order", on_delete=models.CASCADE, blank=True, null=True)
     number = models.IntegerField()
     price = models.IntegerField()
 
